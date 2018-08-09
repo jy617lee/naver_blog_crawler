@@ -59,25 +59,20 @@ for posting_addr in blog_postings:
     driver.get(url)
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
-    title_divs = bs.select('.se_title > .se_textView > .se_textarea')
+    # title_divs = bs.select('.se_title > .se_textView > .se_textarea')
     text_divs1 = bs.select('.se_textView > .se_textarea > span,p')
     text_divs2 = bs.select('.post_ct span')
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
     dates.append(date[0])
 
-    if title_divs == []:
-        title_divs = bs.select('.tit_h3')
-
     if len(text_divs1) > len(text_divs2):
         final_text_div = text_divs1
     else:
         final_text_div = text_divs2
 
-    for title in title_divs:
-        final_title = re.sub(r'(\s\s[\s]+)', '', str(title.text))
-        print(final_title)
-        titles.append(final_title)
+    title = get_title(html)
+    titles.append(title)
 
     text_for_blog = ''
     for text in final_text_div:
@@ -85,6 +80,15 @@ for posting_addr in blog_postings:
         if text not in text_for_blog:
             text_for_blog += text
     texts.append(text_for_blog)
+
+def get_title(html):
+    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+    title_divs = bs.select('.se_title > .se_textView > .se_textarea')
+    if title_divs == []:
+        title_divs = bs.select('.tit_h3')
+    for title in title_divs:
+        final_title = re.sub(r'(\s\s[\s]+)', '', str(title.text))
+        return final_title
 
 import xlwt
 
