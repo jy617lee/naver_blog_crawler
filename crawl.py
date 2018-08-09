@@ -4,12 +4,19 @@ from urllib import request
 from selenium import webdriver
 import time
 import re
-from settings import WEB_DRIVER_PATH, XLSX_PATH
+from settings import WEB_DRIVER_PATH
+import xlwt
 
-start = '20170305'
-end = '20170405'
-keyword = '나노하나'
+titles = []
+texts = []
+dates = []
+
+DATE = 0
+TITLE = 1
+TEXT = 2
+
 def make_basic_url(keyword, start, end):
+    print('make_basic_url')
     base_url = 'https://m.search.naver.com/search.naver?display=15&nso=p%3A'
     period = 'from' + start + 'to' + end
     query = '&query=' + parse.quote(keyword)
@@ -17,13 +24,12 @@ def make_basic_url(keyword, start, end):
     final_url = base_url + period + query + end
     return final_url
 
-basic_url = make_basic_url(keyword, start, end)
-blog_postings = get_blog_posting_urls()
 
-def get_blog_posting_urls(blog_postings):
+def get_blog_posting_urls(basic_url, driver):
+    print('get_blog_posting_urls')
+    blog_postings = []
     index = 1
     flag = True
-    driver = webdriver.Chrome(WEB_DRIVER_PATH)
     regex_href = r'.*https:\/\/m\.blog\.naver\.com\/(\w*\/\d*)'
     while(index < 15):
         # index에 해당하는 url
@@ -45,51 +51,40 @@ def get_blog_posting_urls(blog_postings):
         index += 15
     return blog_postings
 
-# link를 돌면서 제목, 본문, 날짜 넣기
-blog_base_url = 'https://m.blog.naver.com/'
-titles = []
-texts = []
-dates = []
-
-for posting_addr in blog_postings:
-    posting_addr = str(posting_addr).strip('[]')
-    posting_addr = posting_addr.strip('\'\'')
-    url = blog_base_url + posting_addr
-    get_element(url)
-
-DATE = 0
-TITLE = 1
-TEXT = 2
-
-def get_element(url):
+def get_element(url, driver):
     driver.get(url)
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
 
-    date = get_element(bs, DATE)
+    date = get_element_types(bs, DATE)
     dates.append(date)
+    print('date : ', date)
 
-    title = get_element(bs, TITLE)
+    title = get_element_types(bs, TITLE)
     titles.append(title)
 
-    text = get_element(bs, TEXT)
+    text = get_element_types(bs, TEXT)
     texts.append(text)
 
-def get_element(bs, type):
+def get_element_types(bs, type):
+    print('get_element_types :', type)
     switcher = {
         0: get_date,
         1: get_title,
         2: get_text
     }
-    switcher.get(type)(bs)
-
+    return switcher.get(type)(bs)
 
 def get_date(bs):
+    print('get_date')
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
+    print(date_divs)
+    print('date[0] : ', date[0])
     return date[0]
 
 def get_text(bs):
+    print('get_text')
     # 네이버는 에디터에 따라 css selctor가 달라진다
     text_divs1 = bs.select('.se_textView > .se_textarea > span,p')
     text_divs2 = bs.select('.post_ct span')
@@ -104,10 +99,10 @@ def get_text(bs):
         text = re.sub(r'(\<.+?\>)', '', str(text))
         if text not in text_for_blog:
             text_for_blog += text
-    print('text :', text_for_blog)
     return text_for_blog
 
 def get_title(bs):
+    print('get_title')
     title_divs = bs.select('.se_title > .se_textView > .se_textarea')
     if title_divs == []:
         title_divs = bs.select('.tit_h3')
@@ -115,8 +110,7 @@ def get_title(bs):
         final_title = re.sub(r'(\s\s[\s]+)', '', str(title.text))
         return final_title
 
-import xlwt
-def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
+def save_xlsx(path, sheet_name, keyword, list1, list2, list3):
     wb = xlwt.Workbook()
     ws = wb.add_sheet(sheet_name)
     index = 0
@@ -127,5 +121,3 @@ def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
         ws.write(index, 3, text)
         index += 1
     wb.save(path)
-
-save_xlsx(XLSX_PATH, 'nanohana', '나노하나', dates, titles, texts)
