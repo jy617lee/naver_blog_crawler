@@ -97,19 +97,18 @@ print(len(texts))
 print(len(dates))
 
 import xlwt
-wb = xlwt.Workbook()
-ws = wb.add_sheet('nanohana')
-# ws_text = wb.add_sheet('nanohana_text')
-index = 0
-for date, title, text in zip(dates, titles, texts):
-    ws.write(index, 0, keyword)
-    ws.write(index, 1, date)
-    ws.write(index, 2, title)
-    ws.write(index, 3, text)
-    index += 1
+import xlwt
 
-# index = 0
-# for text in texts :
-#     ws_text.write(index, 0, text)
-#     index += 1
-wb.save('C:/dateGirls/m3/nanohana_naver.xls')
+def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet(sheet_name)
+    index = 0
+    for date, title, text in zip(dates, titles, texts):
+        ws.write(index, 0, keyword)
+        ws.write(index, 1, date)
+        ws.write(index, 2, title)
+        ws.write(index, 3, text)
+        index += 1
+    wb.save(path)
+
+save_xlsx('C:/dateGirls/m3/nanohana_naver.xls', 'nanohana', '나노하나', dates, titles, texts)
