@@ -15,6 +15,13 @@ DATE = 0
 TITLE = 1
 TEXT = 2
 
+def get_postings_element(blog_postings):
+    for posting_addr in blog_postings:
+        posting_addr = posting_addr[0]
+        blog_base_url = 'https://m.blog.naver.com/'
+        url = blog_base_url + posting_addr
+        get_element(url, driver)
+        
 def make_basic_url(keyword, start, end):
     print('make_basic_url')
     base_url = 'https://m.search.naver.com/search.naver?display=15&nso=p%3A'
@@ -23,7 +30,6 @@ def make_basic_url(keyword, start, end):
     end = '&where=m_blog&start='
     final_url = base_url + period + query + end
     return final_url
-
 
 def get_blog_posting_urls(basic_url, driver):
     print('get_blog_posting_urls')
@@ -52,13 +58,13 @@ def get_blog_posting_urls(basic_url, driver):
     return blog_postings
 
 def get_element(url, driver):
+    print('get_element')
     driver.get(url)
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
 
     date = get_element_types(bs, DATE)
     dates.append(date)
-    print('date : ', date)
 
     title = get_element_types(bs, TITLE)
     titles.append(title)
@@ -79,8 +85,6 @@ def get_date(bs):
     print('get_date')
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
-    print(date_divs)
-    print('date[0] : ', date[0])
     return date[0]
 
 def get_text(bs):
@@ -111,6 +115,7 @@ def get_title(bs):
         return final_title
 
 def save_xlsx(path, sheet_name, keyword, list1, list2, list3):
+    print('save_xlsx')
     wb = xlwt.Workbook()
     ws = wb.add_sheet(sheet_name)
     index = 0
