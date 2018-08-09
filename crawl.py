@@ -55,29 +55,40 @@ for posting_addr in blog_postings:
     posting_addr = str(posting_addr).strip('[]')
     posting_addr = posting_addr.strip('\'\'')
     url = blog_base_url + posting_addr
+    get_element(url)
 
+DATE = 0
+TITLE = 1
+TEXT = 2
+
+def get_element(url):
     driver.get(url)
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
 
-    date = get_data(html)
-    dates.append(date[0])
+    date = get_element(bs, DATE)
+    dates.append(date)
 
-    title = get_title(html)
+    title = get_element(bs, TITLE)
     titles.append(title)
 
-    text = get_text(html)
+    text = get_element(bs, TEXT)
     texts.append(text)
-    print(text)
 
-def get_date(html):
-    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+def get_element(bs, type):
+    switcher.get(type)(bs)
+
+switcher = {
+    0: get_date,
+    1: get_title,
+    2: get_text
+}
+def get_date(bs):
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
     return date[0]
 
-def get_text(html):
-    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+def get_text(bs):
     # 네이버는 에디터에 따라 css selctor가 달라진다
     text_divs1 = bs.select('.se_textView > .se_textarea > span,p')
     text_divs2 = bs.select('.post_ct span')
@@ -95,8 +106,7 @@ def get_text(html):
     print('text :', text_for_blog)
     return text_for_blog
 
-def get_title(html):
-    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+def get_title(bs):
     title_divs = bs.select('.se_title > .se_textView > .se_textarea')
     if title_divs == []:
         title_divs = bs.select('.tit_h3')
