@@ -6,43 +6,44 @@ import time
 import re
 from settings import WEB_DRIVER_PATH, XLSX_PATH
 
-# url 만들고
-base_url = 'https://m.search.naver.com/search.naver?display=15&nso=p%3A'
 start = '20170305'
 end = '20170405'
 keyword = '나노하나'
-def make_url(keyword, start, end):
+def make_basic_url(keyword, start, end):
+    base_url = 'https://m.search.naver.com/search.naver?display=15&nso=p%3A'
     period = 'from' + start + 'to' + end
     query = '&query=' + parse.quote(keyword)
     end = '&where=m_blog&start='
     final_url = base_url + period + query + end
     return final_url
 
-basic_url = make_url(keyword, start, end)
+basic_url = make_basic_url(keyword, start, end)
+blog_postings = get_blog_posting_urls()
 
-# page가 없을때까지 돌면서
-index = 1
-driver = webdriver.Chrome(WEB_DRIVER_PATH)
-regex_href = r'.*https:\/\/m\.blog\.naver\.com\/(\w*\/\d*)'
-blog_postings = []
-flag = True
-while(index < 15):
-    url = basic_url + str(index)
-    # index에 해당하는 html을 받아와
-    driver.get(url)
-    html = driver.page_source
-    bs = BeautifulSoup(html, 'html5lib')
-    links = bs.select('.bx a')
-    for single_link in links:
-    # single_link가 https://m.blg.naver.com을 포함하면 그걸 가져오자
-        href = re.findall(regex_href, str(single_link))
-        if href != None and href !=[]:
-            if href in blog_postings:
-                flag = False
-                break;
-            else:
-                blog_postings.append(href)
-    index += 15
+def get_blog_posting_urls(blog_postings):
+    index = 1
+    flag = True
+    driver = webdriver.Chrome(WEB_DRIVER_PATH)
+    regex_href = r'.*https:\/\/m\.blog\.naver\.com\/(\w*\/\d*)'
+    while(index < 15):
+        # index에 해당하는 url
+        url = basic_url + str(index)
+
+        driver.get(url)
+        html = driver.page_source
+        bs = BeautifulSoup(html, 'html5lib')
+        links = bs.select('.bx a')
+        for single_link in links:
+        # single_link가 https://m.blg.naver.com을 포함하면 그걸 가져오자
+            href = re.findall(regex_href, str(single_link))
+            if href != None and href !=[]:
+                if href in blog_postings:
+                    flag = False
+                    break;
+                else:
+                    blog_postings.append(href)
+        index += 15
+    return blog_postings
 
 # link를 돌면서 제목, 본문, 날짜 넣기
 blog_base_url = 'https://m.blog.naver.com/'
@@ -50,7 +51,6 @@ titles = []
 texts = []
 dates = []
 
-regex_text = r'>((\w*\s?.?)*)<'
 for posting_addr in blog_postings:
     posting_addr = str(posting_addr).strip('[]')
     posting_addr = posting_addr.strip('\'\'')
@@ -76,13 +76,14 @@ def get_element(url):
     texts.append(text)
 
 def get_element(bs, type):
+    switcher = {
+        0: get_date,
+        1: get_title,
+        2: get_text
+    }
     switcher.get(type)(bs)
 
-switcher = {
-    0: get_date,
-    1: get_title,
-    2: get_text
-}
+
 def get_date(bs):
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
@@ -115,7 +116,6 @@ def get_title(bs):
         return final_title
 
 import xlwt
-
 def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
     wb = xlwt.Workbook()
     ws = wb.add_sheet(sheet_name)
