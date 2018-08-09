@@ -59,27 +59,36 @@ for posting_addr in blog_postings:
     driver.get(url)
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
-    # title_divs = bs.select('.se_title > .se_textView > .se_textarea')
-    text_divs1 = bs.select('.se_textView > .se_textarea > span,p')
-    text_divs2 = bs.select('.post_ct span')
+
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
     dates.append(date[0])
+
+    title = get_title(html)
+    titles.append(title)
+
+    text = get_text(html)
+    texts.append(text)
+    print(text)
+
+def get_text(html):
+    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+    # 네이버는 에디터에 따라 css selctor가 달라진다
+    text_divs1 = bs.select('.se_textView > .se_textarea > span,p')
+    text_divs2 = bs.select('.post_ct span')
 
     if len(text_divs1) > len(text_divs2):
         final_text_div = text_divs1
     else:
         final_text_div = text_divs2
 
-    title = get_title(html)
-    titles.append(title)
-
     text_for_blog = ''
     for text in final_text_div:
         text = re.sub(r'(\<.+?\>)', '', str(text))
         if text not in text_for_blog:
             text_for_blog += text
-    texts.append(text_for_blog)
+    print('text :', text_for_blog)
+    return text_for_blog
 
 def get_title(html):
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
