@@ -4,6 +4,7 @@ from urllib import request
 from selenium import webdriver
 import time
 import re
+from settings import WEB_DRIVER_PATH, XLSX_PATH
 
 # url 만들고
 base_url = 'https://m.search.naver.com/search.naver?display=15&nso=p%3A'
@@ -21,7 +22,7 @@ basic_url = make_url(keyword, start, end)
 
 # page가 없을때까지 돌면서
 index = 1
-driver = webdriver.Chrome('C:\chromedriver.exe')
+driver = webdriver.Chrome(WEB_DRIVER_PATH)
 regex_href = r'.*https:\/\/m\.blog\.naver\.com\/(\w*\/\d*)'
 blog_postings = []
 flag = True
@@ -41,7 +42,6 @@ while(index < 15):
                 break;
             else:
                 blog_postings.append(href)
-                # print(href)
     index += 15
 
 # link를 돌면서 제목, 본문, 날짜 넣기
@@ -68,8 +68,6 @@ for posting_addr in blog_postings:
 
     if title_divs == []:
         title_divs = bs.select('.tit_h3')
-        # print('url :', url)
-        # print('text : ', text_divs)
 
     if len(text_divs1) > len(text_divs2):
         final_text_div = text_divs1
@@ -80,23 +78,14 @@ for posting_addr in blog_postings:
         final_title = re.sub(r'(\s\s[\s]+)', '', str(title.text))
         print(final_title)
         titles.append(final_title)
-        # print(title)
 
     text_for_blog = ''
     for text in final_text_div:
         text = re.sub(r'(\<.+?\>)', '', str(text))
-        # text_final = re.sub(r'(<.*>)', '', text)
-        # text_final = re.sub(r'([\[\]\'])', '', text_final)
-        # text_final = text_final.strip('()')
         if text not in text_for_blog:
             text_for_blog += text
     texts.append(text_for_blog)
 
-print(len(titles))
-print(len(texts))
-print(len(dates))
-
-import xlwt
 import xlwt
 
 def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
@@ -111,4 +100,4 @@ def save_xlsx(path, sheet_name, index_0_value, list1, list2, list3):
         index += 1
     wb.save(path)
 
-save_xlsx('C:/dateGirls/m3/nanohana_naver.xls', 'nanohana', '나노하나', dates, titles, texts)
+save_xlsx(XLSX_PATH, 'nanohana', '나노하나', dates, titles, texts)
