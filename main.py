@@ -6,14 +6,23 @@ end = END_DATE
 keyword = KEYWORD
 driver = webdriver.Chrome(WEB_DRIVER_PATH)
 
-# 키워드, 검색 시작/종료 날짜의 포스팅을 보여주는 basic_url 만들기
-basic_url = make_basic_url(keyword, start, end)
+dates = []
+titles = []
+texts = []
 
-# basic_url을 통해 검색되는 블로그 포스팅 url들을 모은 blog_postings 만들기
-blog_postings = get_blog_posting_urls(basic_url, driver)
+# 키워드, 검색 시작/종료 날짜의 포스팅 url을 가져오기
+blog_posting_urls = get_blog_posting_urls(keyword, start, end, driver)
 
 # blog_postings의 date, text, title 가져오기
-get_posting_elements(blog_postings)
+for posting_addr in blog_posting_urls:
+    date = get_element(DATE, posting_addr, driver)
+    dates.append(date)
+
+    text = get_element(TEXT, posting_addr, driver)
+    texts.append(text)
+
+    title = get_element(TITLE, posting_addr, driver)
+    titles.append(title)
 
 # XLSX_PATH에 저장하기
 save_xlsx(XLSX_PATH, KEYWORD, KEYWORD, dates, titles, texts)
