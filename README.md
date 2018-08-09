@@ -1,9 +1,11 @@
 # 네이버 크롤러
 검색기간, 검색어를 입력하여 검색되는 네이버 블로그 포스팅의 날짜, 제목, 본문을 저장하는 네이버 크롤러
 
+
 # 미리 설치되어 있어야 하는 것
 - pip install : selenium, bs4, urllib, xlwt
 - selenium의 webdriver
+
 
 # settings.py
 - WEB_DRIVER_PATH = webdriver.exe의 경로
