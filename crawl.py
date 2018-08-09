@@ -60,8 +60,7 @@ for posting_addr in blog_postings:
     html = driver.page_source.encode('utf-8')
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
 
-    date_divs = bs.select('.se_date')
-    date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
+    date = get_data(html)
     dates.append(date[0])
 
     title = get_title(html)
@@ -70,6 +69,12 @@ for posting_addr in blog_postings:
     text = get_text(html)
     texts.append(text)
     print(text)
+
+def get_date(html):
+    bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
+    date_divs = bs.select('.se_date')
+    date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
+    return date[0]
 
 def get_text(html):
     bs = BeautifulSoup(html, 'html5lib', from_encoding='utf-8')
