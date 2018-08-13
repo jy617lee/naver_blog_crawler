@@ -64,7 +64,10 @@ def get_date(bs):
     print('get_date')
     date_divs = bs.select('.se_date')
     date = re.findall(r'(20[\d\s\.\:]*)', str(date_divs))
-    return date[0]
+    try:
+        return date[0]
+    except IndexError:
+        return None
 
 def get_text(bs):
     print('get_text')
@@ -93,15 +96,16 @@ def get_title(bs):
         final_title = re.sub(r'(\s\s[\s]+)', '', str(title.text))
         return final_title
 
-def save_xlsx(path, sheet_name, keyword, list1, list2, list3):
+def save_xlsx(wb, ws, broad_name, dining_name, broad_date, list1, list2, list3, index):
     print('save_xlsx')
-    wb = xlwt.Workbook()
-    ws = wb.add_sheet(sheet_name)
-    index = 0
+
     for val1, val2, val3 in zip(list1, list2, list3):
-        ws.write(index, 0, keyword)
-        ws.write(index, 1, val1)
-        ws.write(index, 2, val2)
-        ws.write(index, 3, val3)
+        ws.write(index, 0, broad_name)
+        ws.write(index, 1, dining_name)
+        ws.write(index, 2, broad_date)
+        ws.write(index, 3, val1)
+        ws.write(index, 4, val2)
+        ws.write(index, 5, val3)
         index += 1
-    wb.save(path)
+
+    return index
